@@ -758,4 +758,276 @@ function SaveManager:BuildConfigSection(Tab: any, IconName: string)
 
 		SaveManager.Library:Notify({
 			Title = "Config Created",
-			Description = string.format("Suc
+			Description = string.format("Successfully created config %q.", ConfigName),
+			Time = 3,
+			Icon = "circle-check"
+		})
+		RefreshList()
+	end)
+
+	ConfigurationBox:AddDivider()
+
+	--// Manage
+	ConfigurationBox:AddDropdown("SaveManager_ConfigList", {
+		Text = "Config List",
+
+		Values = SaveManager:RefreshConfigList(),
+		AllowNull = true,
+		Multi = false,
+
+		FormatDisplayValue = function(Value: any)
+			if Value == SaveManager.AutoloadConfig then
+				return string.format("%s (Autoload)", Value)
+			end
+			return Value
+		end,
+		FormatListValue = function(Value: any)
+			if Value == SaveManager.AutoloadConfig then
+				return string.format("%s (Autoload)", Value)
+			end
+			return Value
+		end
+	})
+
+	ConfigurationBox:AddButton("Load", function()
+		local ConfigName = ConfigList.Value
+		if IsStringEmpty(ConfigName) then
+			SaveManager.Library:Notify({
+				Title = "No Config Selected",
+				Description = "Please select a config first.",
+				Time = 3,
+				Icon = "triangle-alert"
+			})
+			return
+		end
+
+		local Success, ErrorMessage = SaveManager:Load(ConfigName)
+		if not Success then
+			SaveManager.Library:Notify({
+				Title = "Error",
+				Description = string.format("Failed to load config %q: %s", ConfigName, ErrorMessage),
+				Icon = "circle-x"
+			})
+			return
+		end
+
+		SaveManager.Library:Notify({
+			Title = "Config Loaded",
+			Description = string.format("Successfully loaded config %q.", ConfigName),
+			Time = 3,
+			Icon = "circle-check"
+		})
+	end):AddButton({
+		Text = "Overwrite",
+		DoubleClick = true,
+		Func = function()
+			local ConfigName = ConfigList.Value
+			if IsStringEmpty(ConfigName) then
+				SaveManager.Library:Notify({
+					Title = "No Config Selected",
+					Description = "Please select a config first.",
+					Time = 3,
+					Icon = "triangle-alert",
+				})
+				return
+			end
+
+			local Success, ErrorMessage = SaveManager:Save(ConfigName)
+			if not Success then
+				SaveManager.Library:Notify({
+					Title = "Error",
+					Description = string.format("Failed to overwrite config %q: %s", ConfigName, ErrorMessage),
+					Icon = "circle-x"
+				})
+				return
+			end
+
+			SaveManager.Library:Notify({
+				Title = "Config Overwritten",
+				Description = string.format("Successfully overwrote config %q.", ConfigName),
+				Time = 3,
+				Icon = "circle-check"
+			})
+		end
+	})
+
+	ConfigurationBox:AddButton({
+		Text = "Delete",
+		DoubleClick = true,
+		Func = function()
+			local ConfigName = ConfigList.Value
+			if IsStringEmpty(ConfigName) then
+				SaveManager.Library:Notify({
+					Title = "No Config Selected",
+					Description = "Please select a config first.",
+					Time = 3,
+					Icon = "triangle-alert",
+				})
+				return
+			end
+
+			local Success, ErrorMessage = SaveManager:Delete(ConfigName)
+			if not Success then
+				SaveManager.Library:Notify({
+					Title = "Error",
+					Description = string.format("Failed to delete config %q: %s", ConfigName, ErrorMessage),
+					Time = 3,
+					Icon = "circle-x",
+				})
+				return
+			end
+
+			SaveManager.Library:Notify({
+				Title = "Config Deleted",
+				Description = string.format("Successfully deleted config %q.", ConfigName),
+				Time = 3,
+				Icon = "circle-check"
+			})
+			RefreshAutoloadConfigLabel()
+		end
+	}):AddButton("Export", function()
+		local EncodedData, Success, ErrorMessage = SaveManager:SaveJSON()
+		if not Success then
+			SaveManager.Library:Notify({
+				Title = "Error",
+				Description = tostring(ErrorMessage),
+				Icon = "circle-x"
+			})
+			return
+		end
+
+		ConfigJSONInput:SetValue(EncodedData)
+		if setclipboard then
+			setclipboard(EncodedData)
+			SaveManager.Library:Notify({
+				Title = "Copied to Clipboard",
+				Description = "Successfully copied the exported config to your clipboard.",
+				Time = 3,
+				Icon = "circle-check",
+			})
+		else
+			SaveManager.Library:Notify({
+				Title = "Config Exported",
+				Description = "Config has been exported to the JSON field.",
+				Time = 3,
+				Icon = "circle-check",
+			})
+		end
+	end)
+
+	ConfigurationBox:AddButton("Refresh List", RefreshList)
+
+	ConfigurationBox:AddDivider()
+
+	--// Autoload Config
+	AutoloadConfigLabel = ConfigurationBox:AddLabel("Current autoload config: none", true)
+
+	ConfigurationBox:AddButton("Set Autoload", function()
+		local ConfigName = ConfigList.Value
+		if IsStringEmpty(ConfigName) then
+			SaveManager.Library:Notify({
+				Title = "No Config Selected",
+				Description = "Please select a config first.",
+				Time = 3,
+				Icon = "triangle-alert"
+			})
+			return
+		end
+
+		local Success, ErrorMessage = SaveManager:SaveAutoloadConfig(ConfigName)
+		if not Success then
+			SaveManager.Library:Notify({
+				Title = "Error",
+				Description = string.format("Failed to set autoload config %q: %s", ConfigName, ErrorMessage),
+				Icon = "circle-x"
+			})
+			return
+		end
+
+		SaveManager.Library:Notify({
+			Title = "Autoload Config Set",
+			Description = string.format("Successfully set autoload config to %q.", ConfigName),
+			Time = 3,
+			Icon = "circle-check"
+		})
+		RefreshAutoloadConfigLabel()
+	end):AddButton({
+		Text = "Reset Autoload",
+		DoubleClick = true,
+		Func = function()
+			local Success, ErrorMessage = SaveManager:DeleteAutoLoadConfig()
+			if not Success then
+				SaveManager.Library:Notify({
+					Title = "Error",
+					Description = string.format("Failed to reset autoload config: %s", ErrorMessage),
+					Icon = "circle-x"
+				})
+				return
+			end
+
+			SaveManager.Library:Notify({
+				Title = "Autoload Config Reset",
+				Description = "Successfully reset the autoload config.",
+				Time = 3,
+				Icon = "circle-check"
+			})
+			RefreshAutoloadConfigLabel()
+		end
+	})
+
+	ConfigurationBox:AddDivider()
+
+	--// Import & Export
+	ConfigurationBox:AddInput("SaveManager_JSON", {
+		Text = "Config JSON"
+	})
+
+	ConfigurationBox:AddButton({
+		Text = "Import Config",
+		DoubleClick = true,
+		Func = function()
+			local ConfigJSON = ConfigJSONInput.Value
+			if IsStringEmpty(ConfigJSON) then
+				SaveManager.Library:Notify({
+					Title = "Empty JSON",
+					Description = "Configuration JSON cannot be empty.",
+					Time = 3,
+					Icon = "triangle-alert"
+				})
+				return
+			end
+
+			local Success, ErrorMessage = SaveManager:LoadJSON(ConfigJSON)
+			if not Success then
+				SaveManager.Library:Notify({
+					Title = "Error",
+					Description = string.format("Failed to import config: %s", ErrorMessage),
+					Icon = "circle-x"
+				})
+				return
+			end
+
+			SaveManager.Library:Notify({
+				Title = "Config Imported",
+				Description = "Successfully imported the configuration.",
+				Time = 3,
+				Icon = "circle-check"
+			})
+		end
+	})
+
+	--// Set variables
+	ConfigNameInput, ConfigList, ConfigJSONInput =
+		SaveManager.Library.Options.SaveManager_ConfigName,
+		SaveManager.Library.Options.SaveManager_ConfigList,
+		SaveManager.Library.Options.SaveManager_JSON
+
+	--// Refresh
+	RefreshAutoloadConfigLabel()
+	SaveManager:SetIgnoreIndexes({ "SaveManager_ConfigList", "SaveManager_ConfigName", "SaveManager_JSON" })
+
+	return ConfigurationBox
+end
+
+SaveManager:BuildFolderTree()
+return SaveManager
