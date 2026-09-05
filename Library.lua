@@ -12360,7 +12360,7 @@ function Library:CreateWindow(WindowInfo)
         local ToggleButtonFrame = New("TextButton", {
             BackgroundColor3 = "BackgroundColor",
             Position = UDim2.fromOffset(6, 6),
-            Size = UDim2.fromOffset(40, 40),
+            Size = UDim2.fromOffset(70, 70),
             Text = "",
             ZIndex = 10,
             Parent = ScreenGui,
@@ -12368,7 +12368,7 @@ function Library:CreateWindow(WindowInfo)
         table.insert(
             Library.Corners, 
             New("UICorner", {
-                CornerRadius = UDim.new(0, 20),
+                CornerRadius = UDim.new(0, 35),
                 Parent = ToggleButtonFrame,
             })
         )
@@ -12380,7 +12380,7 @@ function Library:CreateWindow(WindowInfo)
             ImageColor3 = "WhiteColor",
             Position = UDim2.fromScale(0.5, 0.5),
             AnchorPoint = Vector2.new(0.5, 0.5),
-            Size = UDim2.fromOffset(28, 28),
+            Size = UDim2.fromOffset(50, 50),
             Parent = ToggleButtonFrame,
         })
         
@@ -12389,18 +12389,20 @@ function Library:CreateWindow(WindowInfo)
         
         ToggleButtonFrame.MouseButton1Click:Connect(function()
             if ToggleRotationTween then
-                TweenService:Create(ToggleIcon, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {}):Play()
                 ToggleRotationTween:Cancel()
                 ToggleRotationTween = nil
             end
             
-            ToggleRotation = (ToggleRotation == 0 and 180 or 0)
-            local TweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+            ToggleRotation = ToggleRotation + 360
+            local TweenInfo = TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
             ToggleRotationTween = TweenService:Create(ToggleIcon, TweenInfo, { Rotation = ToggleRotation })
             ToggleRotationTween:Play()
             
             Library:Toggle()
         end)
+        
+        -- Сделать кнопку перемещаемой
+        Library:MakeDraggable(ToggleButtonFrame, ToggleButtonFrame, true)
         
         local ToggleButton = { Button = ToggleButtonFrame }
 
