@@ -12356,55 +12356,9 @@ function Library:CreateWindow(WindowInfo)
     end
 
     if Library.IsMobile then
-        --// Toggle Button with Rotation \\--
-        local ToggleButtonFrame = New("TextButton", {
-            BackgroundColor3 = "BackgroundColor",
-            Position = UDim2.fromOffset(6, 6),
-            Size = UDim2.fromOffset(70, 70),
-            Text = "",
-            ZIndex = 10,
-            Parent = ScreenGui,
-        })
-        table.insert(
-            Library.Corners, 
-            New("UICorner", {
-                CornerRadius = UDim.new(0, 35),
-                Parent = ToggleButtonFrame,
-            })
-        )
-        Library:AddOutline(ToggleButtonFrame)
-        
-        local ToggleIcon = New("ImageLabel", {
-            BackgroundTransparency = 1,
-            Image = "rbxassetid://70889581118491",
-            ImageColor3 = "WhiteColor",
-            Position = UDim2.fromScale(0.5, 0.5),
-            AnchorPoint = Vector2.new(0.5, 0.5),
-            Size = UDim2.fromOffset(50, 50),
-            Parent = ToggleButtonFrame,
-        })
-        
-        local ToggleRotation = 0
-        local ToggleRotationTween = nil
-        
-        ToggleButtonFrame.MouseButton1Click:Connect(function()
-            if ToggleRotationTween then
-                ToggleRotationTween:Cancel()
-                ToggleRotationTween = nil
-            end
-            
-            ToggleRotation = ToggleRotation + 360
-            local TweenInfo = TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-            ToggleRotationTween = TweenService:Create(ToggleIcon, TweenInfo, { Rotation = ToggleRotation })
-            ToggleRotationTween:Play()
-            
+        local ToggleButton = Library:AddDraggableButton("Toggle", function()
             Library:Toggle()
-        end)
-        
-        -- Сделать кнопку перемещаемой
-        Library:MakeDraggable(ToggleButtonFrame, ToggleButtonFrame, true)
-        
-        local ToggleButton = { Button = ToggleButtonFrame }
+        end, true, true)
 
         local LockButton = Library:AddDraggableButton("Lock", function(self)
             Library.CantDragForced = not Library.CantDragForced
